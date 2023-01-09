@@ -18,6 +18,20 @@ func TestYAML(t *testing.T) {
 		expectedErr error
 	}{
 		{
+			name:        "invalid-dst",
+			dst:         `wat`,
+			src:         ``,
+			expected:    ``,
+			expectedErr: errors.New("yaml: unmarshal errors:\n  line 1: cannot unmarshal !!str `wat` into map[string]interface {}"),
+		},
+		{
+			name:        "invalid-src",
+			dst:         ``,
+			src:         `wat`,
+			expected:    ``,
+			expectedErr: errors.New("yaml: unmarshal errors:\n  line 1: cannot unmarshal !!str `wat` into map[string]interface {}"),
+		},
+		{
 			name: "simple-endpoint-merge",
 			dst: `endpoints: 
   - name: one
@@ -119,14 +133,14 @@ endpoints:
 		},
 		{ // only maps and slices can be merged. If there are duplicate keys that have a primitive value, then that's an error.
 			name:        "duplicate-key-with-primitive-value",
-			config:      deepmerge.Config{PreventDuplicateKeysWithPrimitiveValue: true}, // NOTE: true is the default
+			config:      deepmerge.Config{PreventMultipleDefinitionsOfKeysWithPrimitiveValue: true}, // NOTE: true is the default
 			dst:         `metrics: true`,
 			src:         `metrics: false`,
-			expectedErr: deepmerge.ErrDeepMergeDuplicatePrimitiveKey,
+			expectedErr: deepmerge.ErrKeyWithPrimitiveValueDefinedMoreThanOnce,
 		},
 		{
 			name:   "duplicate-key-with-primitive-value-with-preventDuplicateKeysWithPrimitiveValue-set-to-false",
-			config: deepmerge.Config{PreventDuplicateKeysWithPrimitiveValue: false},
+			config: deepmerge.Config{PreventMultipleDefinitionsOfKeysWithPrimitiveValue: false},
 			dst: `metrics: true
 debug: true`,
 			src: `metrics: false`,
@@ -171,16 +185,20 @@ users:
 	for _, scenario := range scenarios {
 		t.Run(scenario.name, func(t *testing.T) {
 			output, err := deepmerge.YAML([]byte(scenario.dst), []byte(scenario.src), scenario.config)
-			if !errors.Is(err, scenario.expectedErr) {
+			if !errors.Is(err, scenario.expectedErr) && !(scenario.expectedErr != nil && err.Error() == scenario.expectedErr.Error()) {
 				t.Errorf("[%s] expected error %v, got %v", scenario.name, scenario.expectedErr, err)
 			}
 			// Just so we don't have to worry about the formatting, we'll unmarshal the output and marshal it again.
 			expectedAsMap, outputAsMap := make(map[string]interface{}), make(map[string]interface{})
-			if err := yaml.Unmarshal(output, &outputAsMap); err != nil {
-				t.Errorf("[%s] failed to unmarshal output: %v", scenario.name, err)
+			if len(output) > 0 {
+				if err := yaml.Unmarshal(output, &outputAsMap); err != nil {
+					t.Errorf("[%s] failed to unmarshal output: %v", scenario.name, err)
+				}
 			}
-			if err := yaml.Unmarshal([]byte(scenario.expected), &expectedAsMap); err != nil {
-				t.Errorf("[%s] failed to unmarshal expected: %v", scenario.name, err)
+			if len(scenario.expected) > 0 {
+				if err := yaml.Unmarshal([]byte(scenario.expected), &expectedAsMap); err != nil {
+					t.Errorf("[%s] failed to unmarshal expected: %v", scenario.name, err)
+				}
 			}
 			formattedOutput, err := yaml.Marshal(outputAsMap)
 			if err != nil {
