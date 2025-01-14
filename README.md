@@ -1,5 +1,5 @@
 # deepmerge
-![test](https://github.com/TwiN/deepmerge/workflows/test/badge.svg?branch=master)
+![test](https://github.com/TwiN/deepmerge/actions/workflows/test.yml/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/TwiN/deepmerge)](https://goreportcard.com/report/github.com/TwiN/deepmerge)
 [![Go version](https://img.shields.io/github/go-mod/go-version/TwiN/deepmerge.svg)](https://github.com/TwiN/deepmerge)
 [![Go Reference](https://pkg.go.dev/badge/github.com/TwiN/deepmerge.svg)](https://pkg.go.dev/github.com/TwiN/deepmerge)
