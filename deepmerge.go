@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	ErrKeyWithPrimitiveValueDefinedMoreThanOnce = errors.New("error due to parameter with value of primitive type: only maps and slices/arrays can be merged, which means you cannot have define the same key twice for parameters that are not maps or slices/arrays")
+	ErrKeyWithPrimitiveValueDefinedMoreThanOnce = errors.New("error due to parameter with value of primitive type: only maps and slices/arrays can be merged, which means you cannot have defined the same key twice for parameters that are not maps or slices/arrays")
 )
 
 func DeepMerge(dst, src map[string]interface{}, config Config) error {
